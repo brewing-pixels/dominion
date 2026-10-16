@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/screen_dominion.png" alt="dominion login screen" width="760">
+  <img src="assets/screenshots/screen_dominion.png" alt="dominion portal with tmux sessions as tabs" width="760">
 </p>
 
 ## Install
