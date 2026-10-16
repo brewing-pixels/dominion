@@ -57,6 +57,7 @@
   const MOBILE_FONT = DESKTOP_FONT * 0.75;
   const KEY_SEQ = {
     esc: "\x1b",
+    btab: "\x1b[Z",
     tab: "\x09",
     enter: "\x0d",
     bs: "\x7f",

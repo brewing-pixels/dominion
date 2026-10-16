@@ -23,6 +23,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   scrollable element sits under the canvas, so dragging on a phone did nothing.
   A vertical swipe is now translated to `scrollLines()` and `touch-action` stops
   the browser from panning the page instead.
+- A Shift+Tab key on the mobile key toolbar, left of Tab. It sends the backtab
+  sequence (CSI Z), which shells and editors use to step backwards through
+  menus, completions, and indented blocks.
 
 ### Changed
 

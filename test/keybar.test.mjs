@@ -53,12 +53,30 @@ test("control keys live in the extra row, main keys in the main row", () => {
       `${key} belongs to the control row`
     );
   }
-  for (const key of ["esc", "tab", "enter", "bs", "left"]) {
+  for (const key of ["esc", "btab", "tab", "enter", "bs", "left"]) {
     assert.ok(
       main.querySelector(`[data-key="${key}"]`),
       `${key} stays in the main row`
     );
   }
+});
+
+test("the shift+tab key sits left of Tab and sends the backtab sequence", () => {
+  const decoder = new TextDecoder();
+  const { api, document } = load();
+  const btab = document.querySelector('#keys-main [data-key="btab"]');
+  const tabBtn = document.querySelector('#keys-main [data-key="tab"]');
+  assert.equal(tabBtn.previousElementSibling, btab, "it sits left of Tab");
+
+  api.applySessions({ sessions: [{ name: "a", windows: 1, attached: false }] });
+  const tab = api.state.tabs.get("a");
+  tab.ws.readyState = 1;
+
+  btab.click();
+
+  const bytes = tab.ws.sent.map((b) => decoder.decode(b)).join("");
+  assert.equal(bytes, "\x1b[Z");
+  api.stopPolling();
 });
 
 test("a control key tapped in the extra row still sends its sequence", () => {
