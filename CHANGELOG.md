@@ -47,6 +47,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   to clients that had already cached it.
 - The terminal's hidden textarea now sets `autocomplete="off"`, which xterm
   6.0.0 omits, so the platform stops offering suggestions on the terminal.
+- The systemd unit no longer sets `NoNewPrivileges`: tmux forks every pane in
+  every session from the server this unit starts, so the flag propagated into
+  all of the user's shells and made `sudo` fail with the "no new privileges"
+  error. A tmux server started before this change keeps the flag until it is
+  restarted.
 
 ## [0.0.4]
 

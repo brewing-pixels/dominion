@@ -19,8 +19,10 @@ ExecStop=/usr/bin/tmux kill-session -t dominion
 # only the dominion session, never the user's other tmux sessions.
 KillMode=process
 # tmux's socket lives in /tmp/tmux-$UID and its config in $HOME, so
-# PrivateTmp/ProtectHome must stay off.
-NoNewPrivileges=true
+# PrivateTmp/ProtectHome must stay off. Leave NoNewPrivileges unset as well:
+# the tmux server this unit starts forks every pane in every session, so the
+# flag would propagate into all of the user's shells and break setuid tools
+# like sudo.
 
 [Install]
 WantedBy=default.target
