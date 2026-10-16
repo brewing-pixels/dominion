@@ -1,40 +1,62 @@
+/* dominion portal — flat cyan HUD (simple-cyan-hud).
+   Single-hue cyan chrome on space-blue neutrals; flat panels, no gradients,
+   no glow, no drop shadows. Colour carries meaning: cyan for the primary
+   chrome, red for the pinned portal session, and the status slots for
+   good/warn/bad. The light theme is a flat cyan counterpart, not an afterglow
+   of the old palette. */
+
 :root {
-  --bg: #0b0e14;
-  --panel: #12151f;
-  --panel-2: #171b28;
-  --border: #232838;
-  --text: #c7ccd6;
-  --muted: #7a8399;
-  --accent: #7aa2f7;
-  --ok: #9ece6a;
-  --warn: #e0af68;
-  --err: #f7768e;
-  --dominion: #5a1414;
-  --dominion-hover: #6b1717;
-  --dominion-active: #7f1d1d;
-  /* Backdrop wash behind the login card. */
-  --glow: #182036;
-  /* Ink used on top of --accent / status fills. */
-  --on-accent: #0b0e14;
+  --bg: #070b0f;
+  --bg-2: #04070a;
+  --surface: #0d1420;
+  --surface-2: #111b2a;
+  --line: #1d2c40;
+  --line-2: #2a3f5a;
+  --ink: #dbeaf5;
+  --ink-2: #9fb6cc;
+  --mut: #748ca3;
+  --chrome: #3fd0e6;
+  --chrome-hover: #5fdceb;
+  --acc: var(--chrome);
+  --acc-ink: #04121a;
+  --good: #34d399;
+  --warn: #f0b429;
+  --bad: #ef6a6a;
+  --bad-hover: #f48888;
+  /* Pinned portal session: red means "the portal lives here, do not kill". */
+  --pinned: #4d161c;
+  --pinned-hover: #5a1a21;
+  --pinned-active: #6a2028;
+  --pinned-ink: #f3d6d6;
+  --r-sm: 6px;
+  --r-lg: 12px;
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dur: 160ms;
+  --f-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   color-scheme: dark;
 }
 
 html[data-theme="light"] {
-  --bg: #f5f6f8;
-  --panel: #ffffff;
-  --panel-2: #eceff4;
-  --border: #d3d8e0;
-  --text: #1a1e26;
-  --muted: #5b6474;
-  --accent: #2f6ad9;
-  --ok: #217a43;
-  --warn: #96600f;
-  --err: #c2354a;
-  --dominion: #7f1d1d;
-  --dominion-hover: #6b1717;
-  --dominion-active: #5a1414;
-  --glow: #dfe6f5;
-  --on-accent: #ffffff;
+  --bg: #eef2f6;
+  --bg-2: #e4eaf1;
+  --surface: #ffffff;
+  --surface-2: #e9eff5;
+  --line: #d2dee7;
+  --line-2: #b3c6d4;
+  --ink: #0f1a22;
+  --ink-2: #35505f;
+  --mut: #4f6778;
+  --chrome: #0b7189;
+  --chrome-hover: #085d72;
+  --acc-ink: #ffffff;
+  --good: #0f7a58;
+  --warn: #8a5b00;
+  --bad: #c2354a;
+  --bad-hover: #a8304a;
+  --pinned: #7f1d1d;
+  --pinned-hover: #6b1717;
+  --pinned-active: #5a1414;
   color-scheme: light;
 }
 
@@ -47,20 +69,27 @@ body {
   margin: 0;
   height: 100%;
   background: var(--bg);
-  color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  font-family: var(--f-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
 }
 
 code {
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
   padding: 1px 5px;
+  font-family: var(--f-mono);
   font-size: 0.9em;
+  color: var(--ink-2);
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--mut);
 }
 
 /* Login */
@@ -69,7 +98,7 @@ code {
   inset: 0;
   display: grid;
   place-items: center;
-  background: radial-gradient(1000px 600px at 50% -10%, var(--glow) 0%, var(--bg) 60%);
+  background: var(--bg);
   z-index: 10;
 }
 
@@ -80,10 +109,9 @@ code {
 #login-form {
   width: min(92vw, 320px);
   padding: 28px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
   text-align: center;
 }
 
@@ -93,7 +121,6 @@ code {
   height: 120px;
   margin: 0 auto 12px;
   object-fit: contain;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
 }
 
 #login-form h1 {
@@ -114,16 +141,14 @@ code {
   font-size: 18px;
   letter-spacing: 0.35em;
   text-align: center;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  outline: none;
+  color: var(--ink);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
 }
 
 #login-form input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.18);
+  border-color: var(--chrome);
 }
 
 #login-form button {
@@ -132,28 +157,32 @@ code {
   padding: 11px 14px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--on-accent);
-  background: var(--accent);
-  border: none;
-  border-radius: 8px;
+  color: var(--acc-ink);
+  background: var(--chrome);
+  border: 1px solid var(--chrome);
+  border-radius: var(--r-sm);
   cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 
 #login-form button:hover {
-  filter: brightness(1.08);
+  background: var(--chrome-hover);
+  border-color: var(--chrome-hover);
 }
 
 #login-form button.link {
   margin-top: 8px;
   padding: 6px;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--mut);
   background: transparent;
+  border-color: transparent;
 }
 
 #login-form button.link:hover {
-  color: var(--text);
-  filter: none;
+  color: var(--ink);
+  background: transparent;
+  border-color: transparent;
 }
 
 #login-form button.link[hidden] {
@@ -162,7 +191,7 @@ code {
 
 .error {
   margin: 14px 0 0;
-  color: var(--err);
+  color: var(--bad);
   font-size: 13px;
 }
 
@@ -170,11 +199,10 @@ code {
 .dialog {
   width: min(92vw, 340px);
   padding: 22px;
-  color: var(--text);
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
 }
 
 .dialog::backdrop {
@@ -193,24 +221,22 @@ code {
   margin-bottom: 6px;
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+  letter-spacing: 0.12em;
+  color: var(--mut);
 }
 
 .dialog input {
   width: 100%;
   padding: 10px 12px;
   font-size: 15px;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  outline: none;
+  color: var(--ink);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
 }
 
 .dialog input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.18);
+  border-color: var(--chrome);
 }
 
 .dialog .error {
@@ -221,12 +247,12 @@ code {
   margin: 0;
   font-size: 14px;
   line-height: 1.45;
-  color: var(--muted);
+  color: var(--ink-2);
   word-break: break-word;
 }
 
 .dialog-text strong {
-  color: var(--text);
+  color: var(--ink);
 }
 
 .dialog-actions {
@@ -241,39 +267,43 @@ code {
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
 
 .btn-ghost {
-  color: var(--muted);
+  color: var(--ink-2);
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-2);
 }
 
 .btn-ghost:hover {
-  color: var(--text);
-  border-color: var(--muted);
+  color: var(--ink);
+  border-color: var(--chrome);
 }
 
 .btn-primary {
-  color: var(--on-accent);
-  background: var(--accent);
-  border: 1px solid var(--accent);
+  color: var(--acc-ink);
+  background: var(--chrome);
+  border: 1px solid var(--chrome);
 }
 
 .btn-primary:hover {
-  filter: brightness(1.08);
+  background: var(--chrome-hover);
+  border-color: var(--chrome-hover);
 }
 
 .btn-danger {
-  color: var(--on-accent);
-  background: var(--err);
-  border: 1px solid var(--err);
+  color: var(--acc-ink);
+  background: var(--bad);
+  border: 1px solid var(--bad);
 }
 
 .btn-danger:hover {
-  filter: brightness(1.08);
+  background: var(--bad-hover);
+  border-color: var(--bad-hover);
 }
 
 /* Settings dialog */
@@ -281,15 +311,15 @@ code {
   margin: 0 0 8px;
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+  letter-spacing: 0.12em;
+  color: var(--mut);
 }
 
 .seg {
   display: flex;
   gap: 0;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
   overflow: hidden;
 }
 
@@ -299,19 +329,24 @@ code {
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
-  color: var(--muted);
-  background: var(--bg);
+  color: var(--mut);
+  background: transparent;
   border: none;
   cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
 .seg-btn + .seg-btn {
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--line);
 }
 
 .seg-btn[aria-pressed="true"] {
-  color: var(--on-accent);
-  background: var(--accent);
+  color: var(--acc-ink);
+  background: var(--chrome);
+}
+
+.seg-btn:not([aria-pressed="true"]):hover {
+  color: var(--ink);
 }
 
 #settings-servers {
@@ -371,8 +406,8 @@ code {
 #bar {
   display: flex;
   align-items: stretch;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
   min-height: 40px;
 }
 
@@ -396,13 +431,14 @@ code {
   flex: 1;
   overflow-x: auto;
   scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
 }
 
 .tab {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--line);
 }
 
 .tab-main {
@@ -411,39 +447,40 @@ code {
   gap: 8px;
   height: 40px;
   padding: 0 8px 0 16px;
-  color: var(--muted);
+  color: var(--mut);
   background: transparent;
   border: none;
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
 .tab-main:hover {
-  color: var(--text);
-  background: var(--panel-2);
+  color: var(--ink);
+  background: var(--surface-2);
 }
 
 .tab.active .tab-main {
-  color: var(--text);
+  color: var(--ink);
   background: var(--bg);
-  box-shadow: inset 0 -2px 0 var(--accent);
+  box-shadow: inset 0 -2px 0 var(--chrome);
 }
 
 /* Pinned portal session: dark red, always first, never killed. */
 .tab.pinned .tab-main {
-  color: #f3d6d6;
-  background: var(--dominion);
+  color: var(--pinned-ink);
+  background: var(--pinned);
 }
 
 .tab.pinned .tab-main:hover {
-  background: var(--dominion-hover);
+  background: var(--pinned-hover);
 }
 
 .tab.pinned.active .tab-main {
   color: #fff;
-  background: var(--dominion-active);
-  box-shadow: inset 0 -2px 0 var(--err);
+  background: var(--pinned-active);
+  box-shadow: inset 0 -2px 0 var(--bad);
 }
 
 .tab.pinned .dot[data-status="connected"] {
@@ -457,16 +494,16 @@ code {
   height: 20px;
   margin-right: 8px;
   padding: 0;
-  color: var(--muted);
+  color: var(--mut);
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   font-size: 15px;
   line-height: 1;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.12s ease, visibility 0.12s ease;
+  transition: opacity var(--dur) var(--ease), visibility var(--dur) var(--ease);
 }
 
 .tab:hover .tab-kill,
@@ -477,8 +514,8 @@ code {
 }
 
 .tab-kill:hover {
-  color: var(--err);
-  background: var(--panel-2);
+  color: var(--bad);
+  background: var(--surface-2);
 }
 
 .tab .name {
@@ -491,12 +528,12 @@ code {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--muted);
+  background: var(--mut);
   flex: none;
 }
 
 .dot[data-status="connected"] {
-  background: var(--ok);
+  background: var(--good);
 }
 
 .dot[data-status="connecting"] {
@@ -505,13 +542,13 @@ code {
 }
 
 .dot[data-status="disconnected"] {
-  background: var(--err);
+  background: var(--bad);
 }
 
 .tab.attached .name::after {
   content: "•";
   margin-left: 6px;
-  color: var(--accent);
+  color: var(--chrome);
   font-size: 10px;
   vertical-align: middle;
 }
@@ -527,18 +564,18 @@ code {
   align-items: center;
   gap: 12px;
   padding: 0 12px;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--line);
 }
 
 .status {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+  letter-spacing: 0.12em;
+  color: var(--mut);
 }
 
 .status[data-status="connected"] {
-  color: var(--ok);
+  color: var(--good);
 }
 
 .status[data-status="connecting"] {
@@ -546,7 +583,7 @@ code {
 }
 
 .status[data-status="disconnected"] {
-  color: var(--err);
+  color: var(--bad);
 }
 
 #new-session,
@@ -557,12 +594,13 @@ code {
   height: 30px;
   display: grid;
   place-items: center;
-  color: var(--muted);
+  color: var(--mut);
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
   cursor: pointer;
   font-size: 14px;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 
 #settings svg,
@@ -573,8 +611,8 @@ code {
 #new-session:hover,
 #settings:hover,
 #lock:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--chrome);
+  border-color: var(--chrome);
 }
 
 #new-session {
@@ -584,8 +622,8 @@ code {
 }
 
 #logout:hover {
-  color: var(--err);
-  border-color: var(--err);
+  color: var(--bad);
+  border-color: var(--bad);
 }
 
 #terminals {
@@ -615,7 +653,7 @@ code {
   display: grid;
   place-content: center;
   text-align: center;
-  color: var(--muted);
+  color: var(--ink-2);
   gap: 4px;
 }
 
@@ -630,10 +668,10 @@ code {
     width: 44px;
     height: 40px;
     flex: none;
-    color: var(--text);
+    color: var(--ink);
     background: transparent;
     border: none;
-    border-right: 1px solid var(--border);
+    border-right: 1px solid var(--line);
     cursor: pointer;
   }
 
@@ -672,7 +710,7 @@ code {
     min-width: 0;
     padding: 0 12px;
     font-size: 13px;
-    color: var(--text);
+    color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -687,11 +725,10 @@ code {
     bottom: 0;
     width: min(82vw, 300px);
     z-index: 30;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    background: var(--surface);
+    border-right: 1px solid var(--line);
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    transition: transform var(--dur) var(--ease);
   }
 
   #drawer.open {
@@ -717,12 +754,12 @@ code {
     padding: 0 8px 0 16px;
     height: 40px;
     flex: none;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
+    letter-spacing: 0.12em;
+    color: var(--mut);
   }
 
   #drawer-close {
@@ -730,25 +767,25 @@ code {
     height: 30px;
     display: grid;
     place-items: center;
-    color: var(--muted);
+    color: var(--mut);
     background: transparent;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     cursor: pointer;
     font-size: 20px;
     line-height: 1;
   }
 
   #drawer-close:hover {
-    color: var(--text);
-    background: var(--panel-2);
+    color: var(--ink);
+    background: var(--surface-2);
   }
 
   .tab {
     width: 100%;
     height: 48px;
     border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--line);
   }
 
   .tab-main {
@@ -760,8 +797,8 @@ code {
   }
 
   .tab.active {
-    background: var(--panel-2);
-    box-shadow: inset 3px 0 0 var(--accent);
+    background: var(--surface-2);
+    box-shadow: inset 3px 0 0 var(--chrome);
   }
 
   .tab.active .tab-main {
@@ -769,16 +806,16 @@ code {
   }
 
   .tab.pinned .tab-main {
-    background: var(--dominion);
+    background: var(--pinned);
     box-shadow: none;
   }
 
   .tab.pinned.active {
-    box-shadow: inset 3px 0 0 var(--err);
+    box-shadow: inset 3px 0 0 var(--bad);
   }
 
   .tab.pinned.active .tab-main {
-    background: var(--dominion-active);
+    background: var(--pinned-active);
   }
 
   .tab-kill {
@@ -798,7 +835,7 @@ code {
     background: rgba(0, 0, 0, 0.5);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--dur) var(--ease);
   }
 
   .scrim.show {
@@ -811,18 +848,18 @@ code {
     place-items: center;
     width: 30px;
     height: 30px;
-    color: var(--muted);
+    color: var(--mut);
     background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
     cursor: pointer;
     font-size: 15px;
     line-height: 1;
   }
 
   #keys-toggle[aria-pressed="true"] {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--chrome);
+    border-color: var(--chrome);
   }
 
   #keys {
@@ -831,8 +868,8 @@ code {
     flex: none;
     padding: 6px 8px;
     padding-bottom: calc(6px + env(safe-area-inset-bottom));
-    background: var(--panel);
-    border-top: 1px solid var(--border);
+    background: var(--surface);
+    border-top: 1px solid var(--line);
   }
 
   #keys[hidden] {
@@ -866,10 +903,10 @@ code {
     min-width: 44px;
     height: 40px;
     padding: 0 12px;
-    color: var(--text);
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
     font-size: 13px;
     font-family: inherit;
     cursor: pointer;
@@ -892,12 +929,12 @@ code {
     min-width: 44px;
     font-size: 18px;
     line-height: 1;
-    color: var(--muted);
+    color: var(--mut);
   }
 
   .key-more[aria-expanded="true"] {
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--chrome);
+    border-color: var(--chrome);
   }
 
   .key-ctrl {
@@ -907,18 +944,27 @@ code {
   }
 
   .key.armed {
-    color: var(--on-accent);
-    background: var(--accent);
-    border-color: var(--accent);
+    color: var(--acc-ink);
+    background: var(--chrome);
+    border-color: var(--chrome);
   }
 
   .key:active {
-    color: var(--on-accent);
-    background: var(--accent);
-    border-color: var(--accent);
+    color: var(--acc-ink);
+    background: var(--chrome);
+    border-color: var(--chrome);
   }
 
   .empty {
     inset: 40px 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
   }
 }

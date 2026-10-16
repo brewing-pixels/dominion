@@ -24,6 +24,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   A vertical swipe is now translated to `scrollLines()` and `touch-action` stops
   the browser from panning the page instead.
 
+### Changed
+
+- The portal has been restyled in a flat cyan HUD: single-hue cyan chrome on
+  space-blue neutrals, flat panels (no gradients, glow, or drop shadows), and
+  a terminal palette that matches the UI. The light theme keeps working with
+  the same structure, and the native clients' connect screen follows the same
+  look. Text contrast was verified against WCAG AA in both themes.
+
 ### Fixed
 
 - Android soft-keyboard input no longer loses a committed word when it is
