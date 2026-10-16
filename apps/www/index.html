@@ -6,44 +6,59 @@
 <meta name="color-scheme" content="dark">
 <title>dominion</title>
 <style>
-  :root { --bg:#0b0e14; --panel:#12151f; --border:#232838; --text:#c7ccd6; --muted:#6b7385; --accent:#7aa2f7; --err:#f7768e; }
+  /* Flat cyan HUD, matching the portal (web/style.css). */
+  :root {
+    --bg:#070b0f; --bg-2:#04070a;
+    --surface:#0d1420; --surface-2:#111b2a;
+    --line:#1d2c40; --line-2:#2a3f5a;
+    --ink:#dbeaf5; --ink-2:#9fb6cc; --mut:#748ca3;
+    --chrome:#3fd0e6; --chrome-hover:#5fdceb; --acc-ink:#04121a;
+    --bad:#ef6a6a;
+    --r-sm:6px; --r-lg:12px;
+    --ease:cubic-bezier(.2,.7,.3,1); --dur:160ms;
+  }
   * { box-sizing: border-box; }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--text);
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { height:100%; display:grid; place-items:center; padding:24px;
-    background: radial-gradient(1000px 600px at 50% -10%, #182036 0%, var(--bg) 60%); }
-  form { width:min(92vw,340px); padding:26px; background:var(--panel); border:1px solid var(--border);
-    border-radius:14px; box-shadow:0 24px 60px rgba(0,0,0,.45); }
+  :focus-visible { outline:2px solid var(--chrome); outline-offset:2px; }
+  main { height:100%; display:grid; place-items:center; padding:24px; background:var(--bg); }
+  form { width:min(92vw,340px); padding:26px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r-lg); }
   h1 { margin:0 0 4px; font-size:20px; letter-spacing:.14em; font-weight:600; }
-  p.sub { margin:0 0 18px; color:var(--muted); font-size:13px; }
-  label { display:block; margin-bottom:6px; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
-  input { width:100%; padding:11px 13px; font-size:16px; color:var(--text); background:var(--bg);
-    border:1px solid var(--border); border-radius:8px; outline:none; }
-  input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(122,162,247,.18); }
+  p.sub { margin:0 0 18px; color:var(--mut); font-size:13px; }
+  label { display:block; margin-bottom:6px; font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:var(--mut); }
+  input { width:100%; padding:11px 13px; font-size:16px; color:var(--ink); background:var(--bg-2);
+    border:1px solid var(--line); border-radius:var(--r-sm); }
+  input:focus { border-color:var(--chrome); }
   button { width:100%; margin-top:14px; padding:11px 14px; font-size:14px; font-weight:600;
-    color:#0b0e14; background:var(--accent); border:none; border-radius:8px; cursor:pointer; }
-  button:disabled { opacity:.6; cursor:default; }
-  #force { color:var(--text); background:transparent; border:1px solid var(--border); }
-  #force:hover { border-color:var(--accent); }
-  .err { margin:12px 0 0; color:var(--err); font-size:13px; }
-  .row { display:flex; gap:10px; align-items:center; margin-top:14px; font-size:12px; color:var(--muted); }
+    color:var(--acc-ink); background:var(--chrome); border:1px solid var(--chrome); border-radius:var(--r-sm);
+    cursor:pointer; transition:background var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+  button:hover { background:var(--chrome-hover); border-color:var(--chrome-hover); }
+  button:disabled { opacity:.5; cursor:default; }
+  #force { color:var(--ink-2); background:transparent; border:1px solid var(--line-2); }
+  #force:hover { color:var(--ink); background:transparent; border-color:var(--chrome); }
+  .err { margin:12px 0 0; color:var(--bad); font-size:13px; }
+  .row { display:flex; gap:10px; align-items:center; margin-top:14px; font-size:12px; color:var(--mut); }
   .row input { width:auto; }
-  .link { margin-top:10px; color:var(--muted); background:transparent; border:none; font-weight:500; }
-  .link:hover { color:var(--text); }
-  h2 { margin:22px 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; }
+  .link { margin-top:10px; color:var(--mut); background:transparent; border:none; font-weight:500; }
+  .link:hover { color:var(--ink); background:transparent; }
+  h2 { margin:22px 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:var(--mut); font-weight:600; }
   h2:first-of-type { margin-top:6px; }
   ul.hosts { list-style:none; margin:0; padding:0; }
-  ul.hosts li { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--border); }
+  ul.hosts li { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--line); }
   ul.hosts li .meta { flex:1; min-width:0; }
-  ul.hosts .hname { display:block; font-size:14px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  ul.hosts .hurl { display:block; font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  ul.hosts .hname { display:block; font-size:14px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  ul.hosts .hurl { display:block; font-size:12px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   ul.hosts button { width:auto; margin:0; padding:7px 10px; font-size:12px; }
-  .host-del { color:var(--err); background:transparent; border:1px solid var(--border); }
-  .host-del:hover { border-color:var(--err); }
-  .empty-hosts { margin:6px 0 0; font-size:13px; color:var(--muted); }
+  .host-del { color:var(--bad); background:transparent; border-color:var(--line-2); }
+  .host-del:hover { border-color:var(--bad); background:transparent; }
+  .empty-hosts { margin:6px 0 0; font-size:13px; color:var(--mut); }
   #view-settings { display:none; }
   body[data-view="settings"] #view-connect { display:none; }
   body[data-view="settings"] #view-settings { display:block; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration:0ms !important; animation-duration:0ms !important; }
+  }
 </style>
 </head>
 <body>
