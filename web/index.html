@@ -58,19 +58,24 @@
     <div id="scrim" class="scrim"></div>
     <main id="terminals"></main>
     <div id="keys" role="toolbar" aria-label="Terminal keys" hidden>
-      <div id="keys-main" class="keys-row">
-        <button class="key key-more" type="button" id="keys-more" aria-expanded="false" aria-controls="keys-ctrl" title="Control keys" aria-label="Show control keys">&#x22ef;</button>
-        <button class="key" type="button" data-key="esc" aria-label="Escape">Esc</button>
-        <button class="key" type="button" data-key="btab" aria-label="Shift Tab">&#x21e7;Tab</button>
-        <button class="key" type="button" data-key="tab" aria-label="Tab">Tab</button>
-        <button class="key" type="button" data-key="enter" aria-label="Enter">&#x21b5;</button>
-        <button class="key" type="button" data-key="bs" aria-label="Backspace">&#x232b;</button>
-        <button class="key key-mod" type="button" data-mod="ctrl" aria-pressed="false" aria-label="Control">Ctrl</button>
-        <button class="key key-mod" type="button" data-mod="alt" aria-pressed="false" aria-label="Alt">Alt</button>
-        <button class="key key-arrow" type="button" data-key="left" aria-label="Arrow left">&#x2190;</button>
-        <button class="key key-arrow" type="button" data-key="up" aria-label="Arrow up">&#x2191;</button>
-        <button class="key key-arrow" type="button" data-key="down" aria-label="Arrow down">&#x2193;</button>
-        <button class="key key-arrow" type="button" data-key="right" aria-label="Arrow right">&#x2192;</button>
+      <div id="keys-main">
+        <div class="keys-row" role="group" aria-label="Navigation keys">
+          <button class="key" type="button" data-key="btab" aria-label="Shift Tab">&#x21e7;Tab</button>
+          <button class="key" type="button" data-key="tab" aria-label="Tab">Tab</button>
+          <button class="key key-arrow" type="button" data-key="left" data-popup="home" aria-label="Arrow left, swipe up for Home">&#x2190;</button>
+          <button class="key key-arrow" type="button" data-key="up" data-popup="pgup" aria-label="Arrow up, swipe up for Page Up">&#x2191;</button>
+          <button class="key key-arrow" type="button" data-key="down" data-popup="pgdn" aria-label="Arrow down, swipe up for Page Down">&#x2193;</button>
+          <button class="key key-arrow" type="button" data-key="right" data-popup="end" aria-label="Arrow right, swipe up for End">&#x2192;</button>
+        </div>
+        <div class="keys-row" role="group" aria-label="Editing keys">
+          <button class="key" type="button" data-key="esc" aria-label="Escape">Esc</button>
+          <button class="key key-mod" type="button" data-mod="ctrl" aria-pressed="false" aria-label="Control, hold to lock">Ctrl</button>
+          <button class="key key-mod" type="button" data-mod="alt" aria-pressed="false" aria-label="Alt, hold to lock">Alt</button>
+          <button class="key" type="button" data-key="ctrl-c" aria-label="Control C">^C</button>
+          <button class="key" type="button" data-key="bs" data-popup="del" aria-label="Backspace, swipe up for Delete">&#x232b;</button>
+          <button class="key" type="button" data-key="enter" aria-label="Enter">&#x21b5;</button>
+          <button class="key key-more" type="button" id="keys-more" aria-expanded="false" aria-controls="keys-ctrl" title="Control keys" aria-label="Show control keys">&#x22ef;</button>
+        </div>
       </div>
       <div id="keys-ctrl" class="keys-row" hidden>
         <button class="key key-ctrl" type="button" data-key="ctrl-c" aria-label="Control C">^C</button>

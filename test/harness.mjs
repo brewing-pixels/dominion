@@ -144,6 +144,7 @@ export function load(routes = [], options = {}) {
     "sendToTab,rawInputEnabled,rawInputDefault,setRawInput,setTabRawInput," +
     "handleRawInput,forwardCompositionDelta,KEY_SEQ," +
     "bindTouchScroll,cellHeight,ctrlKeysVisible,setCtrlKeysVisible," +
+    "keySequence,sendKey,setMod,clearMods,lockedMods," +
     "TERM_THEMES};\n";
   window.eval(src.slice(0, idx) + hook + src.slice(idx));
 

@@ -65,6 +65,11 @@
     up: "\x1b[A",
     down: "\x1b[B",
     right: "\x1b[C",
+    home: "\x1b[H",
+    end: "\x1b[F",
+    pgup: "\x1b[5~",
+    pgdn: "\x1b[6~",
+    del: "\x1b[3~",
     "ctrl-c": "\x03",
     "ctrl-d": "\x04",
     "ctrl-z": "\x1a",
@@ -75,9 +80,37 @@
     "ctrl-w": "\x17",
     "ctrl-r": "\x12",
   };
+  // Cursor-style keys get an xterm modifier parameter when Ctrl/Alt are
+  // armed: CSI 1;<m>A-D/H/F, with m = 1 + (Ctrl|4)+(Alt|2), so Ctrl+Left is
+  // CSI 1;5D and Alt+Up is CSI 1;3A. Tilde-style keys follow the same rule.
+  const MOD_CSI = { left: "D", right: "C", up: "A", down: "B", home: "H", end: "F" };
+  const MOD_TILDE = { pgup: 5, pgdn: 6, del: 3 };
+  // Termux-style key rows: these repeat while held, and these labels are
+  // drawn in the popup chip when a press is swiped up.
+  const REPEAT_KEYS = new Set(["left", "up", "down", "right", "bs"]);
+  const KEY_LABELS = {
+    esc: "Esc",
+    btab: "\u21e7Tab",
+    tab: "Tab",
+    enter: "\u21b5",
+    bs: "\u232b",
+    del: "Del",
+    home: "Home",
+    end: "End",
+    pgup: "PgUp",
+    pgdn: "PgDn",
+    left: "\u2190",
+    up: "\u2191",
+    down: "\u2193",
+    right: "\u2192",
+  };
+  const REPEAT_DELAY = 400;
+  const REPEAT_INTERVAL = 80;
+  const POPUP_SWIPE = 24;
   const MOD_KEYS = ["ctrl", "alt"];
   const encoder = new TextEncoder();
   const activeMods = new Set();
+  const lockedMods = new Set();
   let tabSeq = 0;
 
   const state = {
@@ -362,17 +395,59 @@
     if (activeMods.has("ctrl")) out = ctrlChar(out);
     out += str.slice(1);
     if (activeMods.has("alt")) out = "\x1b" + out;
-    clearMods();
+    clearOneShotMods();
     return out;
   }
 
-  function setMod(mod, on) {
-    if (on) activeMods.add(mod);
-    else activeMods.delete(mod);
+  // modParam is the xterm modifier parameter: 0 for none, else 1 + bitmask
+  // (Ctrl 4, Alt 2) as used in CSI 1;5D and friends.
+  function modParam() {
+    let n = 0;
+    if (activeMods.has("ctrl")) n += 4;
+    if (activeMods.has("alt")) n += 2;
+    return n ? 1 + n : 0;
+  }
+
+  // keySequence renders a named key press as the bytes a terminal expects,
+  // honouring armed Ctrl/Alt for cursor-style keys.
+  function keySequence(key) {
+    const seq = KEY_SEQ[key];
+    if (seq === undefined) return undefined;
+    const m = modParam();
+    if (m) {
+      if (MOD_CSI[key]) return `\x1b[1;${m}${MOD_CSI[key]}`;
+      if (MOD_TILDE[key]) return `\x1b[${MOD_TILDE[key]};${m}~`;
+    }
+    return seq;
+  }
+
+  function setMod(mod, on, lock) {
+    if (on) {
+      activeMods.add(mod);
+      if (lock) lockedMods.add(mod);
+    } else {
+      activeMods.delete(mod);
+      lockedMods.delete(mod);
+    }
     for (const btn of keysEl.querySelectorAll("button.key-mod")) {
       if (btn.dataset.mod !== mod) continue;
+      const locked = on && lockedMods.has(mod);
+      const name = mod === "ctrl" ? "Control" : "Alt";
       btn.classList.toggle("armed", on);
+      btn.classList.toggle("locked", locked);
       btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.setAttribute(
+        "aria-label",
+        locked ? `${name} locked, tap to unlock` : `${name}, hold to lock`
+      );
+    }
+  }
+
+  // clearOneShotMods drops armed modifiers that are not locked. Typed input
+  // consumes a one-shot modifier; a long-pressed, locked modifier persists.
+  function clearOneShotMods() {
+    for (const mod of MOD_KEYS) {
+      if (!lockedMods.has(mod)) setMod(mod, false);
     }
   }
 
@@ -386,8 +461,16 @@
     }
   }
 
-  function sendData(str) {
-    sendToTab(state.active ? state.tabs.get(state.active) : null, str);
+  function sendKey(key) {
+    const seq = keySequence(key);
+    if (seq === undefined) return;
+    const tab = state.active ? state.tabs.get(state.active) : null;
+    if (!tab || !tab.ws || tab.ws.readyState !== WebSocket.OPEN) {
+      clearOneShotMods();
+      return;
+    }
+    tab.ws.send(encoder.encode(seq));
+    clearOneShotMods();
   }
 
   // --- touch scrolling ------------------------------------------------------
@@ -585,7 +668,10 @@
 
   function setKeysVisible(on, persist) {
     keysEl.hidden = !on;
-    if (!on) clearMods();
+    if (!on) {
+      stopPress();
+      clearMods();
+    }
     keysToggleEl.setAttribute("aria-pressed", on ? "true" : "false");
     keysToggleEl.setAttribute(
       "aria-label",
@@ -732,9 +818,122 @@
     setKeysVisible(keysEl.hidden, true);
   });
 
+  // --- mobile key row: press behaviours ------------------------------------
+  // Mirrors Termux's extra-keys row: Ctrl/Alt arm for one key and lock when
+  // held, cursor keys and Backspace repeat while held, and swiping up sends
+  // the key's popup (Home/End/PgUp/PgDn/Del).
+  let pressBtn = null;
+  let repeatStart = null;
+  let repeatTimer = null;
+  let repeatFired = false;
+  let modTimer = null;
+  let modLocked = false;
+  let popupShown = false;
+  let popupStartY = 0;
+  let suppressClick = false;
+
+  function stopPress() {
+    if (repeatStart) {
+      clearTimeout(repeatStart);
+      repeatStart = null;
+    }
+    if (repeatTimer) {
+      clearInterval(repeatTimer);
+      repeatTimer = null;
+    }
+    if (modTimer) {
+      clearTimeout(modTimer);
+      modTimer = null;
+    }
+    if (pressBtn) {
+      const chip = pressBtn.querySelector(".key-popup");
+      if (chip) chip.remove();
+      pressBtn.classList.remove("popup-open");
+      pressBtn = null;
+    }
+    popupShown = false;
+  }
+
+  function showPopup(btn) {
+    const key = btn.dataset.popup;
+    const chip = document.createElement("span");
+    chip.className = "key-popup";
+    chip.setAttribute("aria-hidden", "true");
+    chip.textContent = KEY_LABELS[key] || key;
+    btn.appendChild(chip);
+    btn.classList.add("popup-open");
+  }
+
+  function hidePopup() {
+    if (!pressBtn) return;
+    const chip = pressBtn.querySelector(".key-popup");
+    if (chip) chip.remove();
+    pressBtn.classList.remove("popup-open");
+  }
+
+  function endPress() {
+    const popup = popupShown && pressBtn ? pressBtn.dataset.popup : null;
+    const wasMod = !!(pressBtn && pressBtn.dataset.mod && modLocked);
+    stopPress();
+    if (popup) {
+      sendKey(popup);
+      // The click that follows this release would send the base key too.
+      suppressClick = true;
+    }
+    if (wasMod) {
+      // A pointercancel produces no click to consume the lock flag; clear it
+      // after the click would have run.
+      setTimeout(() => {
+        modLocked = false;
+      }, 0);
+    }
+  }
+
   keysEl.addEventListener("pointerdown", (e) => {
     e.preventDefault();
+    const btn = e.target.closest("button.key");
+    if (!btn) return;
+    stopPress();
+    pressBtn = btn;
+    suppressClick = false;
+    repeatFired = false;
+
+    if (btn.dataset.mod) {
+      const mod = btn.dataset.mod;
+      modLocked = false;
+      modTimer = setTimeout(() => {
+        modTimer = null;
+        modLocked = true;
+        setMod(mod, true, true);
+      }, REPEAT_DELAY);
+      return;
+    }
+
+    popupStartY = e.clientY;
+    popupShown = false;
+    const key = btn.dataset.key;
+    if (REPEAT_KEYS.has(key)) {
+      repeatStart = setTimeout(() => {
+        repeatStart = null;
+        repeatFired = true;
+        sendKey(key);
+        repeatTimer = setInterval(() => sendKey(key), REPEAT_INTERVAL);
+      }, REPEAT_DELAY);
+    }
   });
+
+  window.addEventListener("pointermove", (e) => {
+    if (!pressBtn || !pressBtn.dataset.popup) return;
+    const up = popupStartY - e.clientY >= POPUP_SWIPE;
+    if (up === popupShown) return;
+    popupShown = up;
+    if (up) showPopup(pressBtn);
+    else hidePopup();
+  });
+
+  window.addEventListener("pointerup", endPress);
+  // A cancelled gesture (browser took over the pointer) sends nothing.
+  window.addEventListener("pointercancel", () => stopPress());
 
   keysEl.addEventListener("click", (e) => {
     const moreBtn = e.target.closest("button.key-more");
@@ -744,15 +943,27 @@
     }
     const modBtn = e.target.closest("button.key-mod");
     if (modBtn) {
+      // A long press already locked the modifier; do not toggle it off here.
+      if (modLocked) {
+        modLocked = false;
+        return;
+      }
       const mod = modBtn.dataset.mod;
       setMod(mod, !activeMods.has(mod));
       return;
     }
+    if (suppressClick) {
+      suppressClick = false;
+      repeatFired = false;
+      return;
+    }
     const btn = e.target.closest("button.key");
     if (!btn) return;
-    const seq = KEY_SEQ[btn.dataset.key];
-    if (seq === undefined) return;
-    sendData(seq);
+    if (repeatFired) {
+      repeatFired = false;
+      return;
+    }
+    sendKey(btn.dataset.key);
   });
 
   lockEl.addEventListener("click", async () => {

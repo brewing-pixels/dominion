@@ -16,8 +16,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   as backspaces plus the corrected text.
 - A second, independently togglable mobile key row for control keys: Ctrl+C,
   Ctrl+D, Ctrl+Z, Ctrl+L, Ctrl+A, Ctrl+E, Ctrl+U, Ctrl+W and Ctrl+R. It starts
-  collapsed and is expanded from a "more" button in the main row, so the common
-  keys (Esc, Tab, Enter, Backspace, Ctrl/Alt, arrows) stay on one line. The
+  collapsed and is expanded from a "more" button in the editing row. The
   choice is remembered across sessions.
 - Touch scrolling in the terminal. xterm scrolls only on wheel events and the
   scrollable element sits under the canvas, so dragging on a phone did nothing.
@@ -29,6 +28,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The mobile key toolbar is a fixed, Termux-style grid instead of a sideways
+  scrolling row: every key stays on screen, Shift+Tab, Tab and the arrows lead,
+  and the editing keys (Esc, Ctrl, Alt, Ctrl+C, Backspace, Enter) sit under
+  them. Ctrl and Alt arm for one key and lock when held; the arrows and
+  Backspace repeat while held; swiping up on an arrow or Backspace sends
+  Home/End/PgUp/PgDn/Delete.
 - The portal has been restyled in a flat cyan HUD: single-hue cyan chrome on
   space-blue neutrals, flat panels (no gradients, glow, or drop shadows), and
   a terminal palette that matches the UI. The light theme keeps working with
