@@ -84,30 +84,15 @@
   // armed: CSI 1;<m>A-D/H/F, with m = 1 + (Ctrl|4)+(Alt|2), so Ctrl+Left is
   // CSI 1;5D and Alt+Up is CSI 1;3A. Tilde-style keys follow the same rule.
   const MOD_CSI = { left: "D", right: "C", up: "A", down: "B", home: "H", end: "F" };
-  const MOD_TILDE = { pgup: 5, pgdn: 6, del: 3 };
+  const MOD_TILDE = { pgup: 5, pgdn: 6 };
   // Termux-style key rows: these repeat while held, and these labels are
   // drawn in the popup chip when a press is swiped up.
-  const REPEAT_KEYS = new Set(["left", "up", "down", "right", "bs"]);
-  const KEY_LABELS = {
-    esc: "Esc",
-    btab: "\u21e7Tab",
-    tab: "Tab",
-    enter: "\u21b5",
-    bs: "\u232b",
-    del: "Del",
-    home: "Home",
-    end: "End",
-    pgup: "PgUp",
-    pgdn: "PgDn",
-    left: "\u2190",
-    up: "\u2191",
-    down: "\u2193",
-    right: "\u2192",
-  };
+  const REPEAT_KEYS = new Set(["left", "up", "down", "right"]);
+  const KEY_LABELS = { home: "Home", end: "End", pgup: "PgUp", pgdn: "PgDn" };
   const REPEAT_DELAY = 400;
   const REPEAT_INTERVAL = 80;
   const POPUP_SWIPE = 24;
-  const MOD_KEYS = ["ctrl", "alt"];
+  const MOD_KEYS = ["ctrl", "alt", "shift"];
   const encoder = new TextEncoder();
   const activeMods = new Set();
   const lockedMods = new Set();
@@ -400,19 +385,21 @@
   }
 
   // modParam is the xterm modifier parameter: 0 for none, else 1 + bitmask
-  // (Ctrl 4, Alt 2) as used in CSI 1;5D and friends.
+  // (Shift 1, Alt 2, Ctrl 4) as used in CSI 1;5D and friends.
   function modParam() {
     let n = 0;
-    if (activeMods.has("ctrl")) n += 4;
+    if (activeMods.has("shift")) n += 1;
     if (activeMods.has("alt")) n += 2;
+    if (activeMods.has("ctrl")) n += 4;
     return n ? 1 + n : 0;
   }
 
   // keySequence renders a named key press as the bytes a terminal expects,
-  // honouring armed Ctrl/Alt for cursor-style keys.
+  // honouring armed Ctrl/Alt/Shift for cursor-style keys.
   function keySequence(key) {
     const seq = KEY_SEQ[key];
     if (seq === undefined) return undefined;
+    if (key === "tab" && activeMods.has("shift")) return "\x1b[Z";
     const m = modParam();
     if (m) {
       if (MOD_CSI[key]) return `\x1b[1;${m}${MOD_CSI[key]}`;
@@ -429,10 +416,10 @@
       activeMods.delete(mod);
       lockedMods.delete(mod);
     }
+    const name = { ctrl: "Control", alt: "Alt", shift: "Shift" }[mod] || mod;
     for (const btn of keysEl.querySelectorAll("button.key-mod")) {
       if (btn.dataset.mod !== mod) continue;
       const locked = on && lockedMods.has(mod);
-      const name = mod === "ctrl" ? "Control" : "Alt";
       btn.classList.toggle("armed", on);
       btn.classList.toggle("locked", locked);
       btn.setAttribute("aria-pressed", on ? "true" : "false");
@@ -1452,24 +1439,39 @@
     };
   }
 
-  window.addEventListener(
-    "resize",
-    debounce(() => {
-      if (state.active) fitTab(state.tabs.get(state.active));
-    }, 150)
-  );
+  // --- visible viewport ----------------------------------------------------
+  // Mobile browsers keep the layout viewport at its pre-keyboard height while
+  // the soft keyboard covers the bottom, which would leave the terminal and
+  // the key row behind it. Size the app to the visual viewport instead, then
+  // refit the terminal once the new height settles.
+  const rootEl = document.documentElement;
+  const viewport = window.visualViewport || null;
+
+  function syncViewport() {
+    const height = viewport ? viewport.height : window.innerHeight;
+    if (!height) return;
+    // Pinch-zooming shrinks the visual viewport too; do not resize the app and
+    // reflow the terminal for that. Keyboard changes keep the scale at 1.
+    if (viewport && viewport.scale > 1.01) return;
+    rootEl.style.setProperty("--app-height", `${height}px`);
+    requestAnimationFrame(refitActive);
+  }
+
+  const syncViewportSoon = debounce(syncViewport, 70);
+  if (viewport) {
+    viewport.addEventListener("resize", syncViewportSoon);
+    // iOS shifts the visual viewport as the keyboard and browser chrome move;
+    // tracking scroll keeps the app pinned to the visible area.
+    viewport.addEventListener("scroll", syncViewportSoon);
+  }
+  window.addEventListener("resize", syncViewportSoon);
+  window.addEventListener("orientationchange", syncViewportSoon);
+  syncViewport();
 
   window.addEventListener("focus", () => {
     const tab = state.active ? state.tabs.get(state.active) : null;
     if (tab && tab.term && appVisible() && !drawerEl.classList.contains("open")) tab.term.focus();
   });
-
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener(
-      "resize",
-      debounce(refitActive, 150)
-    );
-  }
 
   setKeysVisible(keysAllowed(), false);
   setCtrlKeysVisible(ctrlKeysVisible(), false);

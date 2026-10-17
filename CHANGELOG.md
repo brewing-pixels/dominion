@@ -30,10 +30,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The mobile key toolbar is a fixed, Termux-style grid instead of a sideways
   scrolling row: every key stays on screen, Shift+Tab, Tab and the arrows lead,
-  and the editing keys (Esc, Ctrl, Alt, Ctrl+C, Backspace, Enter) sit under
-  them. Ctrl and Alt arm for one key and lock when held; the arrows and
-  Backspace repeat while held; swiping up on an arrow or Backspace sends
-  Home/End/PgUp/PgDn/Delete.
+  and the editing keys (Esc, Ctrl, Alt, Shift, Ctrl+C) sit under them. Ctrl,
+  Alt and Shift arm for one key and lock when held; the arrows repeat while
+  held; swiping up on an arrow sends Home/End/PgUp/PgDn. Enter and Backspace
+  are left to the soft keyboard, and Shift covers what they used to: Shift+Tab
+  is the backtab sequence, Shift+arrows send the xterm selection forms
+  (Ctrl+Shift+Left is CSI 1;6D).
 - The portal has been restyled in a flat cyan HUD: single-hue cyan chrome on
   space-blue neutrals, flat panels (no gradients, glow, or drop shadows), and
   a terminal palette that matches the UI. The light theme keeps working with
@@ -42,6 +44,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- The portal is sized to the visual viewport, so a mobile soft keyboard no
+  longer covers the terminal and the key row: the app shrinks to the visible
+  area, the terminal is refitted, and the PTY receives the new rows and
+  columns. Android is helped by `interactive-widget=resizes-content`; iOS and
+  older browsers are tracked through `visualViewport`.
 - Android soft-keyboard input no longer loses a committed word when it is
   followed by a space tap. The IME patch now flushes the pending composition
   text before forwarding the input event instead of cancelling it, so the word

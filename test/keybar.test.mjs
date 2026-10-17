@@ -62,10 +62,19 @@ test("control keys live in the extra row, main keys in the main row", () => {
       `${key} belongs to the control row`
     );
   }
-  for (const key of ["esc", "btab", "tab", "enter", "bs", "left"]) {
+  for (const key of ["esc", "btab", "tab", "left"]) {
     assert.ok(
       main.querySelector(`[data-key="${key}"]`),
       `${key} stays in the main row`
+    );
+  }
+  // The soft keyboard already has Enter and Backspace, so the toolbar keeps a
+  // Shift modifier there instead.
+  for (const key of ["enter", "bs"]) {
+    assert.equal(
+      main.querySelector(`[data-key="${key}"]`),
+      null,
+      `${key} is left to the soft keyboard`
     );
   }
 });
@@ -79,7 +88,7 @@ test("the key rows lead with Shift+Tab, Tab and the arrows", () => {
   const editing = [...rows[1].querySelectorAll("button.key")].map(
     (b) => b.dataset.key || b.dataset.mod || b.id
   );
-  assert.deepEqual(editing, ["esc", "ctrl", "alt", "ctrl-c", "bs", "enter", "keys-more"]);
+  assert.deepEqual(editing, ["esc", "ctrl", "alt", "shift", "ctrl-c", "keys-more"]);
 });
 
 test("armed modifiers rewrite cursor keys with xterm CSI parameters", () => {
@@ -94,6 +103,20 @@ test("armed modifiers rewrite cursor keys with xterm CSI parameters", () => {
   assert.equal(api.keySequence("pgup"), "\x1b[5;3~");
   api.clearMods();
   assert.equal(api.keySequence("pgup"), "\x1b[5~");
+});
+
+test("Shift sends backtab and shifts cursor keys", () => {
+  const { api } = load();
+  api.setMod("shift", true);
+  assert.equal(api.keySequence("tab"), "\x1b[Z", "Shift+Tab is the backtab sequence");
+  assert.equal(api.keySequence("left"), "\x1b[1;2D");
+  assert.equal(api.keySequence("end"), "\x1b[1;2F");
+  assert.equal(api.keySequence("pgdn"), "\x1b[6;2~");
+
+  api.setMod("ctrl", true);
+  assert.equal(api.keySequence("right"), "\x1b[1;6C", "Ctrl+Shift uses modifier 6");
+  api.clearMods();
+  assert.equal(api.keySequence("tab"), "\t");
 });
 
 test("a locked modifier survives typed input, a one-shot does not", () => {
