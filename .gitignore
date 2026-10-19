@@ -44,3 +44,6 @@ assets/override_logo.*
 
 # Third-party / personal icon material (not redistributable)
 apps/icons/terran*
+
+# Local agent working memory
+AGENTS.md
